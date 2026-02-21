@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
+import { onMounted } from 'vue';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Pagination, PaginationContent, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useProducts } from '@/composables/useProducts';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { products } from '@/routes';
@@ -15,7 +17,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { editProduct } = useProducts();
+const { productsData, editProduct, getProducts, onChangePage, onChangeLimit } = useProducts();
+
+onMounted(async () => {
+    productsData.value = await getProducts();
+});
 </script>
 
 <template>
@@ -23,61 +29,96 @@ const { editProduct } = useProducts();
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div
-            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+            class="flex h-full flex-1 flex-col justify-between gap-4 overflow-x-auto rounded-xl p-4"
         >
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
-            </div>
             <div
-                class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
+                class="relative rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
             >
+            
+                <Pagination 
+                    :items-per-page="productsData.pagination.per_page" 
+                    :total="productsData.pagination.total" 
+                    :default-page="productsData.pagination.current_page"
+                    class="mt-2"
+                >
+                    <Select>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm">Display</span>
+                            <SelectTrigger>
+                                <SelectValue :placeholder="productsData.pagination.per_page.toString()" />
+                            </SelectTrigger>
+                            <span class="text-sm">of {{ productsData.pagination.total }} products</span>
+                        </div>
+                        <SelectContent>
+                            <SelectItem 
+                                v-for="(limit, index) in [10, 25, 50, 100]" 
+                                :default-value="productsData.pagination.per_page"
+                                :key="index" 
+                                :value="limit" 
+                                @click="onChangeLimit(limit)"
+                            >
+                                {{ limit }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <PaginationContent>
+                        <PaginationPrevious 
+                            @click="onChangePage(productsData.pagination.current_page - 1)" :disabled="productsData.pagination.current_page === 1" 
+                            class="cursor-pointer"
+                        />
+                        <Select
+                            :model-value="productsData.pagination.current_page.toString()"
+                            @update:model-value="(val) => onChangePage(Number(val))"
+                        >
+                            <SelectTrigger>
+                                <SelectValue :placeholder="productsData.pagination.current_page.toString()" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem 
+                                    v-for="(page, index) in Math.ceil(productsData.pagination.total / productsData.pagination.per_page)" 
+                                    :key="index" 
+                                    :value="page.toString()" 
+                                >
+                                    {{ page }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <PaginationNext 
+                            @click="onChangePage(productsData.pagination.current_page + 1)" :disabled="productsData.pagination.current_page === Math.ceil(productsData.pagination.total / productsData.pagination.per_page)" 
+                            class="cursor-pointer"
+                        />
+                    </PaginationContent>
+                </Pagination>
                 <Table>
-                    <TableCaption>A list of your products.</TableCaption>
                     <TableHeader>
                         <TableRow>
                             <TableHead>#</TableHead>
                             <TableHead class="w-[100px]">
-                                Invoice
+                                Name
                             </TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Method</TableHead>
-                            <TableHead class="text-right">
-                                Amount
-                            </TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead class="text-right">Price</TableHead>
+                            <TableHead>Stock</TableHead>
                             <TableHead>Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow>
-                            <TableCell>1</TableCell>
+                        <TableRow v-for="product in productsData.data" :key="product.id">
+                            <TableCell>{{ product.id }}</TableCell>
                             <TableCell class="font-medium">
-                                INV001
+                                {{ product.name }}
                             </TableCell>
-                            <TableCell>Paid</TableCell>
-                            <TableCell>Credit Card</TableCell>
-                            <TableCell class="text-right">
-                                $250.00
+                            <TableCell>{{ product.description }}</TableCell>
+                            <TableCell class="text-right">{{ product.price }}</TableCell>
+                            <TableCell>
+                                {{ product.stock }}
                             </TableCell>
                             <TableCell>
                                 <Button 
                                     class="cursor-pointer"
                                     size="sm" 
                                     variant="outline"
-                                    @click="editProduct(1)" 
+                                    @click="editProduct(product.id)" 
                                 >
                                     Edit
                                 </Button>

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -9,19 +11,5 @@ Route::get('/users', function (Request $request) {
     ]);
 });
 
-Route::get('/products', function (Request $request) {
-    return response()->json([
-        'data' => [
-            [
-                'id' => 1,
-                'name' => 'Product 1',
-                'price' => 100,
-            ],
-            [
-                'id' => 2,
-                'name' => 'Product 2',
-                'price' => 200,
-            ],
-        ],
-    ]);
-});
+Route::get('/products', [ProductController::class, 'index'])->name('api.products.index');
+Route::get('/categories', [CategoryController::class, 'index'])->name('api.categories.index');
