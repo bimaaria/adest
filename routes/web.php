@@ -10,12 +10,22 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
 
-Route::get('products', function () {
-    return Inertia::render('products/Index');
-})->middleware(['auth', 'verified'])->name('products');
+    Route::get('products', function () {
+        return Inertia::render('products/Index');
+    })->name('products');
+
+    Route::get('categories', function () {
+        return Inertia::render('categories/Index');
+    })->name('categories');
+
+    Route::get('transactions', function () {
+        return Inertia::render('transactions/Index');
+    })->name('transactions');
+});
 
 require __DIR__.'/settings.php';
