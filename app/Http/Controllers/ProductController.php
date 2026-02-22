@@ -2,28 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $validated = $request->validate([
-            'page' => 'required|integer|min:1|max:100',
-            'limit' => 'required|integer|in:10,25,50,100',
-        ]);
-        $products = Product::with('category')
-            ->paginate($validated['limit'], ['*'], 'page', $validated['page']);
+        return Inertia::render('products/Index');
+    }
 
-        return response()->json([
-            'data' => $products->items(),
-            'pagination' => [
-                'total' => $products->total(),
-                'per_page' => (int) $validated['limit'],
-                'current_page' => (int) $validated['page'],
-            ],
-            'status' => 'success',
-        ], 200);
+    public function create()
+    {
+        $categories = Category::all();
+
+        return Inertia::render('products/Create', [
+            'categories' => $categories,
+        ]);
+    }
+
+    public function edit()
+    {
+        return Inertia::render('products/Edit');
     }
 }

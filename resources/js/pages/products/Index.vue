@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { Plus } from 'lucide-vue-next';
 import { onMounted } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Pagination, PaginationContent, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -17,7 +18,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { productsData, editProduct, getProducts, onChangePage, onChangeLimit } = useProducts();
+const { productsData, editProduct, getProducts, onChangePage, onChangeLimit, addProduct } = useProducts();
 
 onMounted(async () => {
     productsData.value = await getProducts();
@@ -29,8 +30,16 @@ onMounted(async () => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div
-            class="flex h-full flex-1 flex-col justify-between gap-4 overflow-x-auto rounded-xl p-4"
+            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
         >
+            <Button 
+                variant="outline" 
+                size="sm" 
+                class="w-fit ml-auto cursor-pointer"
+                @click="addProduct()"
+            >
+                <Plus class="h-4 w-4" /> Add
+            </Button>
             <div
                 class="relative rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
             >
@@ -103,8 +112,8 @@ onMounted(async () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="product in productsData.data" :key="product.id">
-                            <TableCell>{{ product.id }}</TableCell>
+                        <TableRow v-for="(product, index) in productsData.data" :key="product.id">
+                            <TableCell>{{ (productsData.pagination.current_page - 1) * productsData.pagination.per_page + index + 1 }}</TableCell>
                             <TableCell class="font-medium">
                                 {{ product.name }}
                             </TableCell>
