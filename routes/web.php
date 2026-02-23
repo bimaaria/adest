@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -10,6 +12,9 @@ Route::get('/', function () {
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
+
+Route::get('/menu', [MenuController::class, 'index'])->name('menu');
+Route::get('/order', [OrderController::class, 'index'])->name('order');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
