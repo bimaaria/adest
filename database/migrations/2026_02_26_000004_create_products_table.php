@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name');
-            $table->string('description');
-            $table->integer('price');
-            $table->integer('stock');
-            $table->string('image');
-            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+            $table->string('slug');
+            $table->text('description')->nullable();
+            $table->foreignUuid('tenant_id')->constrained('tenants')->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -29,7 +29,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->dropForeign(['category_id']);
+            $table->dropForeign(['tenant_id']);
+            $table->dropForeign(['user_id']);
         });
         Schema::dropIfExists('products');
     }
